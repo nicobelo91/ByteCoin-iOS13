@@ -8,12 +8,19 @@
 
 import Foundation
 
+protocol CoinManagerDelegate {
+    func didUpdateCoin(_ coinManager: CoinManager, exchangeRate: CoinModel)
+    func didFailWithError(error: Error)
+}
+
 struct CoinManager {
     
     let baseURL = "https://rest.coinapi.io/v1/exchangerate/BTC"
     let apiKey = "FA235CE9-E289-4197-9922-731A5391EB7A"
     
     let currencyArray = ["ARS","AUD", "BRL","CAD","CNY","EUR","GBP","HKD","IDR","ILS","INR","JPY","MXN","NOK","NZD","PLN","RON","RUB","SEK","SGD","USD","ZAR"]
+    
+    var delegate: CoinManagerDelegate?
 
     func getCoinPrice(for currency: String) {
         let urlString = "\(baseURL)/\(currency)?apikey=\(apiKey)"
@@ -35,7 +42,9 @@ struct CoinManager {
                     return
                 }
                 if let safeData = data {
-                    self.parseJSON(coinData: safeData)
+                    if let exchangeRate = self.parseJSON(coinData: safeData) {
+                    self.delegate?.didUpdateCoin(self, exchangeRate: exchangeRate)
+                    }
                 }
             }
             //4. Start the task
@@ -43,14 +52,21 @@ struct CoinManager {
         }
     }
     
-    func parseJSON(coinData: Data) {
+    func parseJSON(coinData: Data) -> CoinModel?{
         let decoder = JSONDecoder()
         do {
             let decodedData = try decoder.decode(CoinData.self, from: coinData)
-            let coinDataRate = String(format: "%.2f", decodedData.rate)
-            print(coinDataRate)
+        
+            let rate = decodedData.rate
+            let base = decodedData.asset_id_base
+            let quote = decodedData.asset_id_quote
+            
+            let exchangeRate = CoinModel(baseCoin: base, quoteCoin: quote, coinRate: rate)
+            return exchangeRate
+            
         } catch {
-            print(error)
+            delegate?.didFailWithError(error: error)
+            return nil
         }
     }
 }
