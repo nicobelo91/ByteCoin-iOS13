@@ -1,5 +1,5 @@
 
-The goal of thjs project was to apply all the concepts learned in the [Clima] (https://github.com/nicobelo91/Clima-iOS13) app in order to create my own bitcoin price tracker app.
+The goal of thjs project was to apply all the concepts learned in the [Clima](https://github.com/nicobelo91/Clima-iOS13) app in order to create my own bitcoin price tracker app.
 These concepts include: 
     - Protocols
     - Delegates
